@@ -3,7 +3,6 @@ let PortAudio=require('./build/Release/PA.node');
 const freq=48000;
 PortAudio.initSampleBuffers(freq,freq);
 
-PortAudio.listDevices();
 PortAudio.startMic();
 PortAudio.startSpeaker();
 
