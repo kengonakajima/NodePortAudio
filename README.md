@@ -29,7 +29,7 @@ This depends on node-gyp.
 
 recplay.js is a demo app.
 
-```
+```javascript
 let PortAudio=require('./build/Release/PA.node');  // read native plugin
 
 const freq=48000;
