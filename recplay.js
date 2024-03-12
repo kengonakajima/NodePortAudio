@@ -1,11 +1,4 @@
-let PortAudio=require('./build/Release/PA.node');
-if(process.platform=='darwin') {
-} else if(process.platform=='win32') {
-} else {
-  console.log("TODO: not implemented yet");
-  process.exit(1);
-}
-    
+let PortAudio=require('./build/Release/PA.node'); 
 
 const freq=48000;
 PortAudio.initSampleBuffers(freq,freq);
