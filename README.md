@@ -1,6 +1,6 @@
-# PANode : PortAudio for Node.js
+# PANode : Minimal PortAudio binding for Node.js
 
-A really minimized portaudio binding for node.js on Windows and macOS
+A simplest portaudio binding for node.js on Windows and macOS 
 
 ## Features
 
