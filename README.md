@@ -13,12 +13,14 @@ send samples into default output device(speaker).
 macOS:
 
 ```
+npm install
 make
 ```
 
 Windows:
 
 ```
+npm install
 compile.bat
 ```
 
