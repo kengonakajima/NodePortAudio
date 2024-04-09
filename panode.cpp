@@ -15,22 +15,26 @@ typedef struct
     short samples[SAMPLE_MAX];
     int used;
 } SampleBuffer;
+#define MAX_FRAMES_PER_BUFFER   (1024)
 
 SampleBuffer *g_recbuf; /* 録音したサンプルデータ */
 SampleBuffer *g_playbuf; /* 再生予定のサンプルデータ */
 
 int g_recFreq=32000;
 int g_playFreq=32000;
+int g_framesPerBuffer=512;
 
 /* 必要なSampleBufferを初期化する.  */
-void initSampleBuffers(int recFreq,int playFreq) {
+void initSampleBuffers(int recFreq,int playFreq,int framesPerBuffer) {
     g_recFreq=recFreq;
     g_playFreq=playFreq;
+    g_framesPerBuffer=framesPerBuffer;
+    if(g_framesPerBuffer>MAX_FRAMES_PER_BUFFER)g_framesPerBuffer=MAX_FRAMES_PER_BUFFER;
 
     g_recbuf = (SampleBuffer*) malloc(sizeof(SampleBuffer));
     memset(g_recbuf,0,sizeof(SampleBuffer));
     g_playbuf = (SampleBuffer*) malloc(sizeof(SampleBuffer));
-    memset(g_playbuf,0,sizeof(SampleBuffer));
+    memset(g_playbuf,0,sizeof(SampleBuffer));    
 }
 static int shiftSamples(SampleBuffer *buf, short *output, int num) {
     int to_output=num;
@@ -86,7 +90,6 @@ void discardRecordedSamples(int num) {
 
 #define PA_SAMPLE_TYPE  paInt16
 typedef short SAMPLE;
-#define FRAMES_PER_BUFFER   (512)
 typedef unsigned long PaStreamCallbackFlags;
 static PaStream* g_inputStream;
 static PaStream* g_outputStream;
@@ -97,7 +100,7 @@ static int recordCallback( const void *inputBuffer, void *outputBuffer,
                            PaStreamCallbackFlags statusFlags,
                            void *userData )
 {
-    short recordbuf[FRAMES_PER_BUFFER];
+    short recordbuf[MAX_FRAMES_PER_BUFFER];
     const SAMPLE *rptr = (const SAMPLE*)inputBuffer;
     long framesToCalc = framesPerBuffer;
     long i;
@@ -145,7 +148,7 @@ int startMic() {
               &inputParameters,
               NULL,                  /* &outputParameters, */
               g_recFreq,
-              FRAMES_PER_BUFFER,
+              g_framesPerBuffer,
               paClipOff,      /* we won't output out of range samples so don't bother clipping them */
               recordCallback,
               NULL);
@@ -218,7 +221,7 @@ int startSpeaker() {
               NULL, /* no input */
               &outputParameters,
               g_playFreq,
-              FRAMES_PER_BUFFER,
+              g_framesPerBuffer,
               paClipOff,      /* we won't output out of range samples so don't bother clipping them */
               playCallback,
               NULL );
@@ -248,13 +251,14 @@ const char* hello() {
 
 void NativeAudio_initSampleBuffers(const FunctionCallbackInfo<Value>& args) {
     Isolate* isolate = args.GetIsolate();    
-    if (args.Length() != 2 || !args[0]->IsNumber() || !args[1]->IsNumber() ) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Expected two single integer arguments", NewStringType::kNormal).ToLocalChecked()));
+    if (args.Length() != 3 || !args[0]->IsNumber() || !args[1]->IsNumber() || !args[2]->IsNumber() ) {
+        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Expected 3 single integer arguments", NewStringType::kNormal).ToLocalChecked()));
         return;
     }
     int recFreq = args[0]->NumberValue(isolate->GetCurrentContext()).FromJust();
-    int playFreq = args[1]->NumberValue(isolate->GetCurrentContext()).FromJust();        
-    initSampleBuffers(recFreq,playFreq);
+    int playFreq = args[1]->NumberValue(isolate->GetCurrentContext()).FromJust();
+    int framesPerBuffer = args[2]->NumberValue(isolate->GetCurrentContext()).FromJust();
+    initSampleBuffers(recFreq,playFreq,framesPerBuffer);
     args.GetReturnValue().Set(Undefined(isolate));    
 }
 void NativeAudio_startMic(const FunctionCallbackInfo<Value>& args) {
